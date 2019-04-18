@@ -328,15 +328,22 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
 
     #swap points if going right -> left
     if x0 > x1:
+        zt = z0
         xt = x0
         yt = y0
+        z0 = z1
         x0 = x1
         y0 = y1
         x1 = xt
         y1 = yt
+        z1 = zt
 
     x = x0
     y = y0
+    z = z0
+    dzdx = (z1 - z0) / (x1 - x0) if x1 != x0 else 0
+    dzdy = (z1 - z0) / (y1 - y0) if y1 != y0 else 0
+    dz = 0
     A = 2 * (y1 - y0)
     B = -2 * (x1 - x0)
     wide = False
@@ -349,6 +356,7 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
         dx_east = dx_northeast = 1
         dy_east = 0
         d_east = A
+        dz = dzdx
         if ( A > 0 ): #octant 1
             d = A + B/2
             dy_northeast = 1
@@ -369,6 +377,7 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
             d_east = B
             loop_start = y
             loop_end = y1
+            dz = dzdy
         else: #octant 7
             d = A/2 - B
             dy_east = dy_northeast = -1
@@ -376,9 +385,10 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
             d_east = -1 * B
             loop_start = y1
             loop_end = y
+            dz = -1 * dzdy
 
     while ( loop_start < loop_end ):
-        plot( screen, zbuffer, color, x, y, 0 )
+        plot( screen, zbuffer, color, x, y, z )
         if ( (wide and ((A > 0 and d > 0) or (A < 0 and d < 0))) or
              (tall and ((A > 0 and d < 0) or (A < 0 and d > 0 )))):
 
@@ -389,5 +399,6 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
             x+= dx_east
             y+= dy_east
             d+= d_east
+        z += dz
         loop_start+= 1
     plot( screen, zbuffer, color, x, y, 0 )
